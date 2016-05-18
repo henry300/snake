@@ -35,7 +35,6 @@ public class StartGui extends Application{
         gameArea.setPrefSize(500,500);
         addTiles();
 
-
         gameArea.setOnKeyPressed(e->{
             if (e.getCode() == KeyCode.UP) {
                 toc.setDirection(Direction.UP);
@@ -43,6 +42,8 @@ public class StartGui extends Application{
                 toc.setDirection(Direction.DOWN);
             } else if (e.getCode() == KeyCode.LEFT) {
                 toc.setDirection(Direction.LEFT);
+            } else if (e.getCode() == KeyCode.RIGHT) {
+                toc.setDirection(Direction.RIGHT);
             } else if (e.getCode() == KeyCode.RIGHT) {
                 toc.setDirection(Direction.RIGHT);
             }
@@ -82,12 +83,11 @@ public class StartGui extends Application{
         Direction plannedDirectionDuringNextUpdate = Direction.RIGHT;
         List<Tile> occupiedTiles = new ArrayList<>();
         int frames = 0;
-        int speed = 50; // 1-50
+        int speed = 20; // 1-50
 
 
         TileOccupationCalculator() {
             // Generate initial snake
-            occupy(23,23);
             occupy(24,23);
             occupy(25,23);
         }
@@ -117,19 +117,37 @@ public class StartGui extends Application{
 
         public void addToHead() {
             Tile headTile = occupiedTiles.get(occupiedTiles.size() - 1);
+            int maximumX = tiles.length - 1;
+            int maximumY = tiles[0].length - 1;
             int headX = headTile.getX();
             int headY = headTile.getY();
             int nextHeadX = headX;
             int nextHeadY = headY;
 
             if (currentDirection == Direction.UP) {
-                nextHeadY -= 1;
+                if (headY == 0) {
+                    nextHeadY = maximumY;
+                } else {
+                    nextHeadY -= 1;
+                }
             } else if (currentDirection == Direction.DOWN) {
-                nextHeadY += 1;
+                if (headY == maximumY) {
+                    nextHeadY = 0;
+                } else {
+                    nextHeadY += 1;
+                }
             } else if (currentDirection == Direction.LEFT) {
-                nextHeadX -= 1;
+                if (headX == 0) {
+                    nextHeadX = maximumX;
+                } else {
+                    nextHeadX -= 1;
+                }
             } else {
-                nextHeadX += 1;
+                if (headX == maximumX) {
+                    nextHeadX = 0;
+                } else {
+                    nextHeadX += 1;
+                }
             }
             Tile nextHead = tiles[nextHeadX][nextHeadY];
             occupiedTiles.add(nextHead);
