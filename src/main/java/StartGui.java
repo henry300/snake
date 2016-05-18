@@ -4,6 +4,9 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class StartGui extends Application{
     Tile[][] tiles;
     Stage stage;
@@ -19,21 +22,30 @@ public class StartGui extends Application{
         stage.setTitle("Snake");
         stage.setHeight(500);
         stage.setWidth(500);
-
-
         Scene scene = new Scene(getContent());
         stage.setScene(scene);
         stage.show();
+        startGame();
     }
 
     public Parent getContent() {
         gameArea = new StackPane();
         addTiles();
         return gameArea;
+    }
 
+    public void startGame() {
+        new Timer().schedule(
+                new TimerTask() {
+                    @Override
+                    public void run() {
+                        updateTiles();
+                    }
+                }, 0, 100);
+    }
 
-
-
+    public void updateTiles() {
+        
     }
 
     public void addTiles() {
@@ -54,14 +66,22 @@ public class StartGui extends Application{
 
 
     private class Tile extends StackPane{
+        boolean isOccupied = false;
+
         public Tile(int edgeLen) {
             this.setMaxSize(edgeLen, edgeLen);
         }
 
-        public void setOccupied(boolean isOccupied) {
-            if (isOccupied == true) {
+        public boolean isOccupied() {
+            return isOccupied;
+        }
+
+        public void setOccupied(boolean value) {
+            if (value == true) {
+                isOccupied = true;
                 this.setStyle("-fx-background-color: black");
             } else {
+                isOccupied = false;
                 this.setStyle(null);
             }
         }
