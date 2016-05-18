@@ -86,9 +86,11 @@ public class StartGui extends Application{
             // Generate initial snake
             occupy(23,23);
             occupy(24,23);
+            occupy(25,23);
+        }
 
-
-            removeFromTale();
+        public void update() {
+            move();
         }
 
         public void occupy(int x, int y) {
@@ -96,8 +98,14 @@ public class StartGui extends Application{
             occupiedTiles.add(tiles[x][y]);
         }
 
-        public void removeFromTale() {
+        public void move() {
+            addToHead();
+            removeFromTale();
+        }
 
+        public void removeFromTale() {
+            occupiedTiles.get(0).setOccupied(false);
+            occupiedTiles.remove(0);
         }
 
         public void addToHead() {
@@ -120,11 +128,6 @@ public class StartGui extends Application{
             occupiedTiles.add(nextHead);
             nextHead.setOccupied(true);
 
-        }
-
-
-        public void update() {
-            addToHead();
         }
 
         public void setDirection(Direction direction) {
