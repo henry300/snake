@@ -38,6 +38,8 @@ public class StartGui extends Application{
         gameArea = new StackPane();
         addTiles();
 
+
+
         gameArea.setOnKeyPressed(e->{
             if (e.getCode() == KeyCode.UP) {
                 toc.setDirection(Direction.UP);
@@ -89,7 +91,12 @@ public class StartGui extends Application{
         }
 
         public void setDirection(Direction direction) {
-            this.currentDirection = direction;
+            if (!(direction == Direction.LEFT && currentDirection == Direction.RIGHT ||
+                direction == Direction.RIGHT && currentDirection == Direction.LEFT ||
+                direction == Direction.DOWN && currentDirection == Direction.UP ||
+                direction == Direction.UP && currentDirection == Direction.DOWN)) {
+                this.currentDirection = direction;
+            }
         }
     }
 
