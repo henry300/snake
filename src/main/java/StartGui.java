@@ -14,7 +14,7 @@ public class StartGui extends Application{
     Tile[][] tiles;
     Stage stage;
     StackPane gameArea;
-    TileOccupationCalculator toc = new TileOccupationCalculator();
+    TileOccupationCalculator toc;
 
     public static void main(String[] args) {
         launch(args);
@@ -24,8 +24,7 @@ public class StartGui extends Application{
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
         stage.setTitle("Snake");
-        stage.setHeight(500);
-        stage.setWidth(500);
+        stage.setResizable(false);
         Scene scene = new Scene(getContent());
         stage.setScene(scene);
         stage.show();
@@ -36,6 +35,7 @@ public class StartGui extends Application{
 
     public Parent getContent() {
         gameArea = new StackPane();
+        gameArea.setPrefSize(500,500);
         addTiles();
 
 
@@ -55,25 +55,26 @@ public class StartGui extends Application{
     }
 
     public void startGame() {
+        toc = new TileOccupationCalculator();
         new Timer().schedule(
                 new TimerTask() {
                     @Override
                     public void run() {
                         toc.update();
                     }
-                }, 0, 100);
+                }, 0, 1000);
     }
 
     public void addTiles() {
         int tileEdgeLen = 10;
-        int nrOfTilesHor = (int)stage.getHeight() / tileEdgeLen;
-        int nrOfTilesVert = (int)stage.getWidth() / tileEdgeLen;
-        tiles = new Tile[nrOfTilesVert][nrOfTilesHor];
-        for (int i = 0; i < nrOfTilesVert; i++) {
-            for (int j = 0; j < nrOfTilesHor; j++) {
+        int nrOfTilesHor = (int)gameArea.getPrefWidth() / tileEdgeLen;
+        int nrOfTilesVert = (int)gameArea.getPrefHeight() / tileEdgeLen;
+        tiles = new Tile[nrOfTilesHor][nrOfTilesVert];
+        for (int i = 0; i < nrOfTilesHor; i++) {
+            for (int j = 0; j < nrOfTilesVert; j++) {
                 Tile tile = new Tile(tileEdgeLen);
-                tile.setTranslateX(j * tileEdgeLen - stage.getWidth() / 2 + tileEdgeLen / 2);
-                tile.setTranslateY(i * tileEdgeLen - stage.getHeight() / 2 + tileEdgeLen / 2);
+                tile.setTranslateX(i * tileEdgeLen + tileEdgeLen / 2 - gameArea.getPrefWidth() / 2);
+                tile.setTranslateY(j * tileEdgeLen + tileEdgeLen / 2 - gameArea.getPrefHeight() / 2);
                 tiles[i][j] = tile;
                 gameArea.getChildren().add(tile);
             }
@@ -82,12 +83,23 @@ public class StartGui extends Application{
 
     private class TileOccupationCalculator {
         Direction currentDirection = Direction.RIGHT;
-
         Queue<Tile> occupiedTiles = new LinkedList<Tile>();
+
+        TileOccupationCalculator() {
+            // Generate initial snake
+            occupy(23,23);
+            occupy(24,23);
+            occupy(25,23);
+        }
+
+        public void occupy(int x, int y) {
+            tiles[x][y].setOccupied(true);
+            occupiedTiles.add(tiles[x][y]);
+        }
 
 
         public void update() {
-            System.out.println(currentDirection);
+
         }
 
         public void setDirection(Direction direction) {
