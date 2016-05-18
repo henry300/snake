@@ -44,15 +44,16 @@ public class StartGui extends Application{
                 toc.setDirection(Direction.LEFT);
             } else if (e.getCode() == KeyCode.RIGHT) {
                 toc.setDirection(Direction.RIGHT);
-            } else if (e.getCode() == KeyCode.RIGHT) {
-                toc.setDirection(Direction.RIGHT);
+            } else if (e.getCode() == KeyCode.SPACE) {
+                toc.eat();
             }
         });
         return gameArea;
     }
 
-    public void startGame() {
+    public void startGame() throws InterruptedException {
         toc = new TileOccupationCalculator();
+        Thread.sleep(300); // To remove bug where some tiles remained occupied
         new Timer().schedule(
                 new TimerTask() {
                     @Override
@@ -83,7 +84,7 @@ public class StartGui extends Application{
         Direction plannedDirectionDuringNextUpdate = Direction.RIGHT;
         List<Tile> occupiedTiles = new ArrayList<>();
         int frames = 0;
-        int speed = 20; // 1-50
+        int speed = 50; // 1-50
 
 
         TileOccupationCalculator() {
@@ -113,6 +114,10 @@ public class StartGui extends Application{
         public void removeFromTale() {
             occupiedTiles.get(0).setOccupied(false);
             occupiedTiles.remove(0);
+        }
+
+        public void eat() {
+            System.out.println("eating");
         }
 
         public void addToHead() {
