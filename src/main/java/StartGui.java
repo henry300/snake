@@ -5,10 +5,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 public class StartGui extends Application{
     Tile[][] tiles;
@@ -39,7 +36,6 @@ public class StartGui extends Application{
         addTiles();
 
 
-
         gameArea.setOnKeyPressed(e->{
             if (e.getCode() == KeyCode.UP) {
                 toc.setDirection(Direction.UP);
@@ -62,7 +58,7 @@ public class StartGui extends Application{
                     public void run() {
                         toc.update();
                     }
-                }, 0, 1000);
+                }, 0, 100);
     }
 
     public void addTiles() {
@@ -72,7 +68,7 @@ public class StartGui extends Application{
         tiles = new Tile[nrOfTilesHor][nrOfTilesVert];
         for (int i = 0; i < nrOfTilesHor; i++) {
             for (int j = 0; j < nrOfTilesVert; j++) {
-                Tile tile = new Tile(tileEdgeLen);
+                Tile tile = new Tile(tileEdgeLen, i, j);
                 tile.setTranslateX(i * tileEdgeLen + tileEdgeLen / 2 - gameArea.getPrefWidth() / 2);
                 tile.setTranslateY(j * tileEdgeLen + tileEdgeLen / 2 - gameArea.getPrefHeight() / 2);
                 tiles[i][j] = tile;
@@ -83,13 +79,16 @@ public class StartGui extends Application{
 
     private class TileOccupationCalculator {
         Direction currentDirection = Direction.RIGHT;
-        Queue<Tile> occupiedTiles = new LinkedList<Tile>();
+        List<Tile> occupiedTiles = new ArrayList<>();
+
 
         TileOccupationCalculator() {
             // Generate initial snake
             occupy(23,23);
             occupy(24,23);
-            occupy(25,23);
+
+
+            removeFromTale();
         }
 
         public void occupy(int x, int y) {
@@ -97,9 +96,35 @@ public class StartGui extends Application{
             occupiedTiles.add(tiles[x][y]);
         }
 
+        public void removeFromTale() {
+
+        }
+
+        public void addToHead() {
+            Tile headTile = occupiedTiles.get(occupiedTiles.size() - 1);
+            int headX = headTile.getX();
+            int headY = headTile.getY();
+            int nextHeadX = headX;
+            int nextHeadY = headY;
+
+            if (currentDirection == Direction.UP) {
+                nextHeadY -= 1;
+            } else if (currentDirection == Direction.DOWN) {
+                nextHeadY += 1;
+            } else if (currentDirection == Direction.LEFT) {
+                nextHeadX -= 1;
+            } else {
+                nextHeadX += 1;
+            }
+            Tile nextHead = tiles[nextHeadX][nextHeadY];
+            occupiedTiles.add(nextHead);
+            nextHead.setOccupied(true);
+
+        }
+
 
         public void update() {
-
+            addToHead();
         }
 
         public void setDirection(Direction direction) {
@@ -114,9 +139,29 @@ public class StartGui extends Application{
 
     private class Tile extends StackPane{
         boolean isOccupied = false;
+        int x;
+        int y;
 
-        public Tile(int edgeLen) {
+        public void paintRed() {
+            this.setStyle("-fx-background-color:red");
+        }
+
+        public void paintBlue() {
+            this.setStyle("-fx-background-color:blue");
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public Tile(int edgeLen, int x, int y) {
             this.setMaxSize(edgeLen, edgeLen);
+            this.x = x;
+            this.y = y;
         }
 
         public boolean isOccupied() {
