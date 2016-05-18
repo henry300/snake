@@ -1,9 +1,12 @@
 import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -11,6 +14,7 @@ public class StartGui extends Application{
     Tile[][] tiles;
     Stage stage;
     StackPane gameArea;
+    TileOccupationCalculator toc = new TileOccupationCalculator();
 
     public static void main(String[] args) {
         launch(args);
@@ -25,12 +29,26 @@ public class StartGui extends Application{
         Scene scene = new Scene(getContent());
         stage.setScene(scene);
         stage.show();
+        gameArea.requestFocus();
+        stage.setOnCloseRequest(e -> System.exit(0));
         startGame();
     }
 
     public Parent getContent() {
         gameArea = new StackPane();
         addTiles();
+
+        gameArea.setOnKeyPressed(e->{
+            if (e.getCode() == KeyCode.UP) {
+                toc.setDirection(Direction.UP);
+            } else if (e.getCode() == KeyCode.DOWN) {
+                toc.setDirection(Direction.DOWN);
+            } else if (e.getCode() == KeyCode.LEFT) {
+                toc.setDirection(Direction.LEFT);
+            } else if (e.getCode() == KeyCode.RIGHT) {
+                toc.setDirection(Direction.RIGHT);
+            }
+        });
         return gameArea;
     }
 
@@ -39,13 +57,9 @@ public class StartGui extends Application{
                 new TimerTask() {
                     @Override
                     public void run() {
-                        updateTiles();
+                        toc.update();
                     }
                 }, 0, 100);
-    }
-
-    public void updateTiles() {
-        
     }
 
     public void addTiles() {
@@ -64,6 +78,20 @@ public class StartGui extends Application{
         }
     }
 
+    private class TileOccupationCalculator {
+        Direction currentDirection = Direction.RIGHT;
+
+        Queue<Tile> occupiedTiles = new LinkedList<Tile>();
+
+
+        public void update() {
+            System.out.println(currentDirection);
+        }
+
+        public void setDirection(Direction direction) {
+            this.currentDirection = direction;
+        }
+    }
 
     private class Tile extends StackPane{
         boolean isOccupied = false;
