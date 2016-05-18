@@ -58,7 +58,7 @@ public class StartGui extends Application{
                     public void run() {
                         toc.update();
                     }
-                }, 0, 100);
+                }, 0, 50);
     }
 
     public void addTiles() {
@@ -80,6 +80,8 @@ public class StartGui extends Application{
     private class TileOccupationCalculator {
         Direction currentDirection = Direction.RIGHT;
         List<Tile> occupiedTiles = new ArrayList<>();
+        Direction plannedDirectionDuringNextUpdate;
+
 
 
         TileOccupationCalculator() {
@@ -90,6 +92,7 @@ public class StartGui extends Application{
         }
 
         public void update() {
+            currentDirection = plannedDirectionDuringNextUpdate;
             move();
         }
 
@@ -135,7 +138,8 @@ public class StartGui extends Application{
                 direction == Direction.RIGHT && currentDirection == Direction.LEFT ||
                 direction == Direction.DOWN && currentDirection == Direction.UP ||
                 direction == Direction.UP && currentDirection == Direction.DOWN)) {
-                this.currentDirection = direction;
+
+                this.plannedDirectionDuringNextUpdate = direction;
             }
         }
     }
