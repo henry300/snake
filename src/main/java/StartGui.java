@@ -2,8 +2,10 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import java.util.*;
@@ -35,8 +37,6 @@ public class StartGui extends Application{
         gameArea = new StackPane();
         gameArea.setPrefSize(200,200);
 
-
-
         addTiles();
 
         gameArea.setOnKeyPressed(e->{
@@ -48,6 +48,10 @@ public class StartGui extends Application{
                 toc.setDirection(Direction.LEFT);
             } else if (e.getCode() == KeyCode.RIGHT) {
                 toc.setDirection(Direction.RIGHT);
+            } else if (e.getCode() == KeyCode.SPACE) {
+                if (toc.gameHasEnded) {
+                    toc.resetGame();
+                }
             }
         });
         return gameArea;
@@ -86,7 +90,12 @@ public class StartGui extends Application{
     private class TileOccupationCalculator {
         Direction currentDirection = Direction.RIGHT;
         Direction plannedDirectionDuringNextUpdate = Direction.RIGHT;
+        Label gameOverLabel = new Label();
+        Label gameOverScoreLabel = new Label();
+        Label gameOverInfoLabel = new Label();
+        StackPane gameOverPane = new StackPane();
         List<Tile> occupiedTiles = new ArrayList<>();
+        boolean gameHasEnded = false;
         Tile foodTile = null;
         boolean eating = false;
         int frames = 0;
@@ -95,18 +104,59 @@ public class StartGui extends Application{
 
 
         TileOccupationCalculator() {
+            gameArea.getChildren().addAll(gameOverPane, gameOverLabel, gameOverScoreLabel, gameOverInfoLabel);
+
             // Generate initial snake
             occupy(14,13);
             occupy(15,13);
         }
 
         public void update() {
-            if (frames % (131 - speed) == 0) {
-                foodCalculator();
-                currentDirection = plannedDirectionDuringNextUpdate;
-                move();
+            if (!gameHasEnded) {
+                if (frames % (131 - speed) == 0) {
+                    foodCalculator();
+                    currentDirection = plannedDirectionDuringNextUpdate;
+                    move();
+                }
+                frames++;
+            } else {
+                endGame();
             }
-            frames++;
+        }
+
+        public void resetGame() {
+            score = 0;
+            speed = 40;
+            foodTile.setFood(false);
+            foodTile = null;
+            eating = false;
+            occupiedTiles = new ArrayList<>();
+            currentDirection = Direction.RIGHT;
+            plannedDirectionDuringNextUpdate = Direction.RIGHT;
+            gameOverLabel.setText("");
+            gameOverInfoLabel.setText("");
+            gameOverScoreLabel.setText("");
+            gameOverPane.setStyle(null);
+
+            for (Tile[] horTile : tiles) {
+                for (Tile tile : horTile) {
+                    tile.setOccupied(false);
+                }
+            }
+            occupy(14,13);
+            occupy(15,13);
+
+            gameHasEnded = false;
+        }
+
+        public void endGame() {
+            gameOverPane.setStyle("-fx-background-color: white");
+            gameOverLabel.setText("Game Over!");
+            gameOverLabel.setFont(new Font(20));
+            gameOverLabel.setTranslateY(-20);
+            gameOverScoreLabel.setText("Final Score: " + score);
+            gameOverInfoLabel.setText("Press (space) to try again!");
+            gameOverInfoLabel.setTranslateY(40);
         }
 
         public void occupy(int x, int y) {
@@ -152,11 +202,10 @@ public class StartGui extends Application{
             foodTile = null;
             score += 1;
             stage.setTitle("Score: " + score);
-            
+
             if (speed < 100) {
                 speed += 1;
             }
-
         }
 
         public void addToHead() {
@@ -196,6 +245,12 @@ public class StartGui extends Application{
 
             Tile nextHead = tiles[nextHeadX][nextHeadY];
 
+            // In case of collision
+            if (occupiedTiles.contains(nextHead)) {
+                gameHasEnded = true;
+            }
+
+            // In case of eating
             if (nextHead == foodTile) {
                 eat();
             }
@@ -246,10 +301,6 @@ public class StartGui extends Application{
 
         public int getY() {
             return y;
-        }
-
-        public boolean isOccupied() {
-            return isOccupied;
         }
 
         public void setOccupied(boolean value) {
