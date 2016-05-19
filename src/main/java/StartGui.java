@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
@@ -32,7 +33,10 @@ public class StartGui extends Application{
 
     public Parent getContent() {
         gameArea = new StackPane();
-        gameArea.setPrefSize(500,500);
+        gameArea.setPrefSize(200,200);
+
+
+
         addTiles();
 
         gameArea.setOnKeyPressed(e->{
@@ -44,8 +48,6 @@ public class StartGui extends Application{
                 toc.setDirection(Direction.LEFT);
             } else if (e.getCode() == KeyCode.RIGHT) {
                 toc.setDirection(Direction.RIGHT);
-            } else if (e.getCode() == KeyCode.SPACE) {
-                toc.eat();
             }
         });
         return gameArea;
@@ -58,9 +60,11 @@ public class StartGui extends Application{
                 new TimerTask() {
                     @Override
                     public void run() {
-                        toc.update();
+                        Platform.runLater(() -> {
+                            toc.update();
+                        });
                     }
-                }, 0, 35);
+                }, 0, 2);
     }
 
     public void addTiles() {
@@ -83,18 +87,22 @@ public class StartGui extends Application{
         Direction currentDirection = Direction.RIGHT;
         Direction plannedDirectionDuringNextUpdate = Direction.RIGHT;
         List<Tile> occupiedTiles = new ArrayList<>();
+        Tile foodTile = null;
+        boolean eating = false;
         int frames = 0;
-        int speed = 50; // 1-50
+        int speed = 40; // 1 - 130
+        int score = 0;
 
 
         TileOccupationCalculator() {
             // Generate initial snake
-            occupy(24,23);
-            occupy(25,23);
+            occupy(14,13);
+            occupy(15,13);
         }
 
         public void update() {
-            if (frames % (50 / speed) == 0) {
+            if (frames % (131 - speed) == 0) {
+                foodCalculator();
                 currentDirection = plannedDirectionDuringNextUpdate;
                 move();
             }
@@ -106,9 +114,31 @@ public class StartGui extends Application{
             occupiedTiles.add(tiles[x][y]);
         }
 
+        public void foodCalculator() {
+            if (foodTile == null) {
+                int maximumX = tiles.length - 1;
+                int maximumY = tiles[0].length - 1;
+                Random r = new Random();
+                int randomX = r.nextInt(maximumX);
+                int randomY = r.nextInt(maximumY);
+                foodTile = tiles[randomX][randomY];
+                while (occupiedTiles.contains(foodTile)) {
+                    randomX = r.nextInt(maximumX);
+                    randomY = r.nextInt(maximumY);
+                    foodTile = tiles[randomX][randomY];
+                }
+                foodTile.setFood(true);
+            }
+
+        }
+
         public void move() {
             addToHead();
-            removeFromTale();
+            if (eating) {
+                eating = false;
+            } else {
+                removeFromTale();
+            }
         }
 
         public void removeFromTale() {
@@ -117,7 +147,16 @@ public class StartGui extends Application{
         }
 
         public void eat() {
-            System.out.println("eating");
+            eating = true;
+            foodTile.setFood(false);
+            foodTile = null;
+            score += 1;
+            stage.setTitle("Score: " + score);
+            
+            if (speed < 100) {
+                speed += 1;
+            }
+
         }
 
         public void addToHead() {
@@ -154,7 +193,13 @@ public class StartGui extends Application{
                     nextHeadX += 1;
                 }
             }
+
             Tile nextHead = tiles[nextHeadX][nextHeadY];
+
+            if (nextHead == foodTile) {
+                eat();
+            }
+
             occupiedTiles.add(nextHead);
             nextHead.setOccupied(true);
 
@@ -173,15 +218,26 @@ public class StartGui extends Application{
 
     private class Tile extends StackPane{
         boolean isOccupied = false;
+        boolean isFood = false;
         int x;
         int y;
 
-        public void paintRed() {
-            this.setStyle("-fx-background-color:red");
+        public Tile(int edgeLen, int x, int y) {
+            this.setMaxSize(edgeLen, edgeLen);
+            this.x = x;
+            this.y = y;
         }
 
-        public void paintBlue() {
-            this.setStyle("-fx-background-color:blue");
+        public void setFood(boolean value) {
+            if (value == true) {
+                isFood = true;
+                setOccupied(true);
+                this.setStyle("-fx-background-color: green");
+            } else {
+                isFood = false;
+                setOccupied(false);
+                this.setStyle("-fx-background-color: black");
+            }
         }
 
         public int getX() {
@@ -190,12 +246,6 @@ public class StartGui extends Application{
 
         public int getY() {
             return y;
-        }
-
-        public Tile(int edgeLen, int x, int y) {
-            this.setMaxSize(edgeLen, edgeLen);
-            this.x = x;
-            this.y = y;
         }
 
         public boolean isOccupied() {
